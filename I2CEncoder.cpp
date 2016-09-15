@@ -6,19 +6,21 @@
 
 // INITIALIZE
 unsigned char I2CEncoder::nextAddress = I2CENCODER_STARTING_ADDRESS;
-I2CEncoder* I2CEncoder::lastEncoder = NULL;
+I2CEncoder   *I2CEncoder::lastEncoder = NULL;
 
 // CONSTRUCTOR
+
 /**
  * Create the encoder with it's automatically assigned address.
  */
 I2CEncoder::I2CEncoder() {
   address = nextAddress;
   nextAddress++;
-  is_reversed = false;
+  is_reversed     = false;
   rotation_factor = 0;
-  time_delta = 0;
-  ticks = 0;
+  maxZeroSpeed    = 0xFFFF;
+  time_delta      = 0;
+  ticks           = 0;
 }
 
 // PUBLIC METHODS
@@ -32,10 +34,10 @@ void I2CEncoder::init(double rotation_factor, double time_delta, int ticks) {
     lastEncoder->unTerminate();
   }
   lastEncoder = this;
-  
+
   this->rotation_factor = rotation_factor;
-  this->time_delta = time_delta;
-  this->ticks = ticks;
+  this->time_delta      = time_delta;
+  this->ticks           = ticks;
 
   // Assign it's address
   Wire.beginTransmission(I2CENCODER_DEFAULT_ADDRESS);
@@ -46,6 +48,7 @@ void I2CEncoder::init(double rotation_factor, double time_delta, int ticks) {
   // Zero it on initialization
   zero();
 }
+
 void I2CEncoder::init(double rotation_factor, double time_delta) {
   init(rotation_factor, time_delta, TICKS);
 }
@@ -64,8 +67,29 @@ void I2CEncoder::setReversed(bool is_reversed) {
 double I2CEncoder::getSpeed() {
   // TODO: Check sanity of the values
   unsigned int vb = getVelocityBits();
-  if (vb == 0xFFFF) return 0;
+
+  if (vb >= maxZeroSpeed) return 0;
+
   return rotation_factor / (double(vb) * time_delta);
+}
+
+/**
+ * Returns the velocity of the encoder rotation per minute for the output
+ * shaft of the motor.
+ */
+double I2CEncoder::getVelocity() {
+  double position  = getPosition();
+  double speed     = getSpeed();
+  double position2 = getPosition();
+
+  if (position2 >= position)
+  {
+    return speed;
+  }
+  else
+  {
+    return -1 * speed;
+  }
 }
 
 /**
@@ -83,12 +107,11 @@ unsigned int I2CEncoder::getVelocityBits() {
   return speed;
 }
 
-
 /**
  * Returns the position in rotations since power on or last reset.
  */
 double I2CEncoder::getPosition() {
-  return rotation_factor / ((double) ticks) * ((double) getRawPosition());
+  return rotation_factor / ((double)ticks) * ((double)getRawPosition());
 }
 
 /**
@@ -136,6 +159,18 @@ void I2CEncoder::terminate() {
  */
 int I2CEncoder::getAddress() {
   return address;
+}
+
+/**
+ * Modifiied by Thomas Thomas
+ * Sets the maximum speed at which the encoder will return a speed of 0.
+ * This also, sets the maximum length of time the encoder will report a
+ * speed other than zero, after the shaft has stopped.
+ */
+void I2CEncoder::setMaxZeroSpeed(double zeroSpeed) {
+  //  maxZeroSpeed = 30 / (zeroSpeed * 39.2 * 0.000064);
+  //  maxZeroSpeed = zeroSpeed / ( TICKS * rotation_factor * time_delta );
+  maxZeroSpeed = rotation_factor / (zeroSpeed * time_delta);
 }
 
 // Private Functions

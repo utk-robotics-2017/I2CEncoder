@@ -34,7 +34,7 @@
 //// 393 Motor configured for torque:
 // Encoder Revolutions to Output Rotations
 // 1 (Output Rotation) / 39.2 (Encoder Revolution)
-#define MOTOR_393_TORQUE_ROTATIONS 0.02551020408	
+#define MOTOR_393_TORQUE_ROTATIONS 0.02551020408
 
 // 393 Motor configured for speed: Ticks to Rotations
 // Encoder Revolutions to Output Rotations
@@ -68,12 +68,14 @@ class I2CEncoder
   int ticks;
   int address;
   void accessRegister(unsigned char reg);
+  double maxZeroSpeed;
  public:
   I2CEncoder();
   void init(double rotation_factor, double time_delta);
   void init(double rotation_factor, double time_delta, int ticks);
   void setReversed(bool is_reversed);
   double getSpeed();
+  double getVelocity();
   unsigned int getVelocityBits();
   double getPosition();
   long getRawPosition();
@@ -81,6 +83,6 @@ class I2CEncoder
   void unTerminate();
   void terminate();
   int getAddress();
+  void setMaxZeroSpeed(double ZeroSpeed);
 };
 #endif
-
