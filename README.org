@@ -1,4 +1,4 @@
-Build Status: [![Build Status](https://api.travis-ci.org/utk-robotics-2017/I2CEncoder.svg?branch=master)](https://travis-ci.org/utk-robotics-2017/I2CEncoder)
+Build Status: [[https://travis-ci.org/utk-robotics-2017/I2CEncoder][https://api.travis-ci.org/utk-robotics-2017/I2CEncoder.svg?branch=master]]
 
 * Introduction
 This library uses the Wire library for I2C to talk to the Vex
